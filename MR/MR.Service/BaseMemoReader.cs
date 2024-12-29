@@ -1,5 +1,6 @@
 ﻿using MR.Model;
 using NPOI.HPSF;
+using NPOI.HSSF.Model;
 using NPOI.HSSF.Record;
 using NPOI.SS.UserModel;
 using NPOI.XWPF.Extractor;
@@ -103,12 +104,16 @@ namespace MR.Service
             Debug.WriteLine(sss);
 #endif
 
+            //Heading2: Heading2
+            var prefix = "heading";
             var levelCache = items.Select((tt, index) => new { tt.StyleID, tt.Text, index });
             List<SingleMemo> res = new();
             SingleMemo r = null;
             foreach (var item in levelCache)
             {
-                if (int.TryParse(item.StyleID, out int level))
+                int level = -1;
+                if ((int.TryParse(item.StyleID, out level))
+                    || (item.StyleID != null && item.StyleID.ToLower().StartsWith(prefix) && int.TryParse(item.StyleID.Substring(prefix.Length, item.StyleID.Length - prefix.Length), out level)))
                 {
                     var cc = r;
                     if (cc != null)
