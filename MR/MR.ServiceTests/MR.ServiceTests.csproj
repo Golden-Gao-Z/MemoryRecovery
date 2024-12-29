@@ -25,6 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestResources\midwaySystemDetails.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestResources\midwayTransactionProtocol.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

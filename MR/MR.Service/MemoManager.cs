@@ -1,4 +1,5 @@
-﻿using NPOI.HPSF;
+﻿using MR.Model;
+using NPOI.HPSF;
 using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
@@ -9,19 +10,45 @@ using System.Threading.Tasks;
 namespace MR.Service
 {
 
-    public class MemoManager 
+    public class MemoManager
     {
         public BaseMemoReader MemoReader { get; private set; }
-        public MemoManager(BaseMemoReader memoReader)
+        public MemoManager(BaseMemoReader memoReader, MemoScheduler scheduler = null)
         {
             this.MemoReader = memoReader;
-
+            this.memos = this.MemoReader.ReadAllSingleMemos();
         }
-
-        public string ReadDocumentText()
+        private List<SingleMemo> memos { get; set; } = new List<SingleMemo>();
+        int rLimit = 100;
+        private int preRand = -1;
+        public virtual SingleMemo Random()
         {
-            
-            throw new NotImplementedException();
+            var count = this.memos.Count;
+            if (count == 0) return null;
+
+            long tick = DateTime.Now.Ticks;
+            Random rand = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32));
+
+            var num = rand.Next(0, count);
+            var mm = this.memos[num];
+            var rcount = 0;
+            // 抽到空内容，或者与上次重复的，重抽
+            while ((string.IsNullOrEmpty(mm.Text) || preRand == num)
+                && rcount++ < this.rLimit)
+            {
+                num = rand.Next(0, count);
+                mm = this.memos[num];
+            }
+            preRand = num;
+            return mm;
         }
+    }
+
+    /// <summary>
+    /// get memo to use.
+    /// </summary>
+    public class MemoScheduler
+    {
+
     }
 }

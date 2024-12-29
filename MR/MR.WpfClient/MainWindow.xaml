@@ -5,8 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MR.WpfClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        WindowStartupLocation="CenterScreen"
+        KeyUp="Window_KeyUp">
     <Grid>
-
+        <DockPanel>
+            <Button DockPanel.Dock="Bottom" Margin="10" Height="30" Click="Button_Click" Content="Random"/>
+            <TextBlock DockPanel.Dock="Top" x:Name="ShowTitle" TextWrapping="WrapWithOverflow" Padding="10"/>
+            <TextBlock x:Name="ShowMemo" TextWrapping="WrapWithOverflow" Padding="10,20"/>
+        </DockPanel>
     </Grid>
 </Window>

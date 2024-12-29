@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using MR.Service;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,29 @@ namespace MR.WpfClient
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            RandMemo();
+        }
+        private void RandMemo()
+        {
+            var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
+            var wordReader = new WordMemoReader(path);
+            MemoManager manager = new MemoManager(wordReader);
+            var r = manager.Random();
+            this.ShowTitle.Text = r?.Title;
+            this.ShowMemo.Text = r?.Text;
+        }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            //判断用户的按键是否为Alt+F4
+            if (e.KeyStates == Keyboard.GetKeyStates(Key.Space))
+            {
+                RandMemo();
+            }
         }
     }
 }

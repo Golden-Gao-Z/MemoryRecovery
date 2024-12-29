@@ -12,4 +12,14 @@
     <ProjectReference Include="..\MR.Service\MR.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MemoResources\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="MemoResources\midwaySystemDetails.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
