@@ -43,18 +43,19 @@ namespace MR.Service
             preRand = num;
             return mm;
         }
+        private int levelLimit = 5;
         public virtual List<string> GetOverView()
         {
 
-            var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < 4).ToList();
+            var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < levelLimit).ToList();
             var res = lis.Select(tt =>
             {
                 var pattern = "{0," + (tt.Level - 1) * 7 + "}{1}";
-                var ff= string.Format(pattern, "",tt.Title.Trim());
+                var ff = string.Format(pattern, "", tt.Title.Trim());
                 Debug.WriteLine(ff);
                 return ff;
             }
-                 
+
             );
             return res.ToList();
         }
