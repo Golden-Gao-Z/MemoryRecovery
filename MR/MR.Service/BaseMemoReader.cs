@@ -119,6 +119,7 @@ namespace MR.Service
 
                     r = new SingleMemo();
                     r.Title += item.Text;
+                    r.Level = level;
                 }
                 else
                 {

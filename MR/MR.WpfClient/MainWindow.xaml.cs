@@ -1,4 +1,5 @@
 ﻿using MR.Service;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,7 @@ namespace MR.WpfClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MemoManager manager;
         public MainWindow()
         {
             InitializeComponent();
@@ -28,9 +30,6 @@ namespace MR.WpfClient
         }
         private void RandMemo()
         {
-            var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
-            var wordReader = new WordMemoReader(path);
-            MemoManager manager = new MemoManager(wordReader);
             var r = manager.Random();
             this.ShowTitle.Text = r?.Title;
             this.ShowMemo.Text = r?.Text;
@@ -43,6 +42,36 @@ namespace MR.WpfClient
             {
                 RandMemo();
             }
+        }
+
+        private string onedrivePath = "D:\\OneDrive\\Documents\\CompanyWork\\系统机制细节解读.docx";
+        private string cachePath = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources");
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            ClearCache();
+            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString()+".docx");
+            //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
+            File.Copy(onedrivePath, cc);
+            this.Load(cc);
+        }
+        private void Load(string path)
+        {
+            var wordReader = new WordMemoReader(path);
+            this.manager = new MemoManager(wordReader);
+            this.ShowContent.Text = string.Join("\n", this.manager.GetOverView());
+        }
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            ClearCache();
+            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
+            //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
+            File.Copy(onedrivePath, cc);
+            this.Load(cc);
+        }
+        private void ClearCache()
+        {
+            Directory.Delete(cachePath, true);
+            Directory.CreateDirectory(cachePath);
         }
     }
 }

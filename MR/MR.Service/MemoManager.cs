@@ -3,6 +3,7 @@ using NPOI.HPSF;
 using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +42,21 @@ namespace MR.Service
             }
             preRand = num;
             return mm;
+        }
+        public virtual List<string> GetOverView()
+        {
+
+            var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < 4).ToList();
+            var res = lis.Select(tt =>
+            {
+                var pattern = "{0," + (tt.Level - 1) * 7 + "}{1}";
+                var ff= string.Format(pattern, "",tt.Title.Trim());
+                Debug.WriteLine(ff);
+                return ff;
+            }
+                 
+            );
+            return res.ToList();
         }
     }
 
