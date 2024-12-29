@@ -44,13 +44,14 @@ namespace MR.Service
             return mm;
         }
         private int levelLimit = 5;
+        private int spaceControl = 3;
         public virtual List<string> GetOverView()
         {
 
             var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < levelLimit).ToList();
             var res = lis.Select(tt =>
             {
-                var pattern = "{0," + (tt.Level - 1) * 7 + "}{1}";
+                var pattern = "{0," + (tt.Level - 1) * spaceControl + "}{1}";
                 var ff = string.Format(pattern, "", tt.Title.Trim());
                 Debug.WriteLine(ff);
                 return ff;
