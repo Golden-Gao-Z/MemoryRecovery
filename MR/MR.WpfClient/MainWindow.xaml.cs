@@ -1,4 +1,5 @@
 ﻿using MR.Service;
+using NPOI.Util;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -44,14 +45,17 @@ namespace MR.WpfClient
             }
         }
 
-        private string onedrivePath = "D:\\OneDrive\\Documents\\CompanyWork\\系统机制细节解读.docx";
+        private readonly string[] onedrivePath = [
+                "D:\\OneDrive\\Documents\\CompanyWork\\系统机制细节解读.docx" ,
+                "D:\\OneDrive\\Documents\\CompanyWork\\csTerms.docx"
+            ];
         private string cachePath = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources");
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             ClearCache();
-            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString()+".docx");
+            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
             //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
-            File.Copy(onedrivePath, cc);
+            File.Copy(onedrivePath.Last(), cc);
             this.Load(cc);
         }
         private void Load(string path)
@@ -65,7 +69,7 @@ namespace MR.WpfClient
             ClearCache();
             var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
             //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
-            File.Copy(onedrivePath, cc);
+            File.Copy(onedrivePath.Last(), cc);
             this.Load(cc);
         }
         private void ClearCache()
