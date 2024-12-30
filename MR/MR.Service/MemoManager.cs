@@ -34,7 +34,7 @@ namespace MR.Service
             var mm = this.memos[num];
             var rcount = 0;
             // 抽到空内容，或者与上次重复的，重抽
-            while ((string.IsNullOrEmpty(mm.Text) || preRand == num)
+            while ((string.IsNullOrEmpty(mm.Title) || preRand == num)
                 && rcount++ < this.rLimit)
             {
                 num = rand.Next(0, count);
