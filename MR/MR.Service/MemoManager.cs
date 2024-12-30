@@ -22,7 +22,7 @@ namespace MR.Service
         private List<SingleMemo> memos { get; set; } = new List<SingleMemo>();
         int rLimit = 100;
         private int preRand = -1;
-        public virtual SingleMemo Random()
+        public virtual SingleMemo Random(int levelLow = 0, int levelHigh = 6)
         {
             var count = this.memos.Count;
             if (count == 0) return null;
@@ -34,7 +34,8 @@ namespace MR.Service
             var mm = this.memos[num];
             var rcount = 0;
             // 抽到空内容，或者与上次重复的，重抽
-            while ((string.IsNullOrEmpty(mm.Title) || preRand == num)
+            while (
+                (string.IsNullOrEmpty(mm.Title) || preRand == num || mm.Level > levelHigh || mm.Level < levelLow)
                 && rcount++ < this.rLimit)
             {
                 num = rand.Next(0, count);

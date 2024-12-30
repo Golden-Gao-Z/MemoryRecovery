@@ -31,18 +31,30 @@ namespace MR.WpfClient
         }
         private void RandMemo()
         {
-            var r = manager.Random();
-            this.ShowTitle.Text = r?.Title;
-            this.ShowMemo.Text = r?.Text;
+            try
+            {
+                var split = this.levelRange.Text.Split([',','，']).Select(tt => int.Parse(tt.Trim())).ToArray();
+                if (split.Length != 2) throw new Exception();
+                var r = manager.Random(split[0], split[1]);
+                this.ShowTitle.Text = r?.Title;
+                this.ShowMemo.Text = r?.Text;
+            }
+            catch (Exception)
+            {
+                var r = manager.Random();
+                this.ShowTitle.Text = r?.Title;
+                this.ShowMemo.Text = r?.Text;
+            }
+           
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
             //判断用户的按键是否为Alt+F4
-            if (e.KeyStates == Keyboard.GetKeyStates(Key.Space))
-            {
-                RandMemo();
-            }
+            //if (e.KeyStates == Keyboard.GetKeyStates(Key.Space))
+            //{
+            //    RandMemo();
+            //}
         }
 
         private readonly string[] onedrivePath = [

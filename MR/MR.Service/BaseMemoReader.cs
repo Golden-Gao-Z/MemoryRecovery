@@ -93,8 +93,6 @@ namespace MR.Service
 
         public override List<SingleMemo> ReadAllSingleMemos()
         {
-
-
             using StreamReader streamReader = new(this.MemoSrc);
             var document = new XWPFDocument(streamReader.BaseStream);
             var items = document.BodyElements.Cast<XWPFParagraph>();
@@ -115,21 +113,20 @@ namespace MR.Service
                 if ((int.TryParse(item.StyleID, out level))
                     || (item.StyleID != null && item.StyleID.ToLower().StartsWith(prefix) && int.TryParse(item.StyleID.Substring(prefix.Length, item.StyleID.Length - prefix.Length), out level)))
                 {
-                    var cc = r;
-                    if (cc != null)
-                    {
-                        cc.Text = cc.Text?.Trim();
-                        res.Add(cc);
-                    }
+                    if (r != null) r.Text.Trim();
 
                     r = new SingleMemo();
-                    r.Title += item.Text;
+                    r.Title = item.Text;
+                    r.Text = "";
                     r.Level = level;
+                    res.Add(r);
+
+
                 }
                 else
                 {
                     if (r != null)
-                        r.Text += "\n" + item.Text;
+                        r.Text += item.Text + "\n";
                 }
             }
             return res;
