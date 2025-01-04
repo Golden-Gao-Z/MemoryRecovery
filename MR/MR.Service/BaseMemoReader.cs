@@ -93,41 +93,49 @@ namespace MR.Service
 
         public override List<SingleMemo> ReadAllSingleMemos()
         {
-            using StreamReader streamReader = new(this.MemoSrc);
-            var document = new XWPFDocument(streamReader.BaseStream);
-            var items = document.BodyElements.Cast<XWPFParagraph>();
+            List<SingleMemo> res = new();
+            try
+            {
+                using StreamReader streamReader = new(this.MemoSrc);
+                var document = new XWPFDocument(streamReader.BaseStream);
+                var items = document.BodyElements.Cast<XWPFParagraph>();
 #if DEBUG
-            var styles = items.Select(tt => tt?.Style + ": " + tt?.StyleID).Distinct();
-            var sss = string.Join("\n", styles);
-            Debug.WriteLine(sss);
+                var styles = items.Select(tt => tt?.Style + ": " + tt?.StyleID).Distinct();
+                var sss = string.Join("\n", styles);
+                Debug.WriteLine(sss);
 #endif
 
-            //Heading2: Heading2
-            var prefix = "heading";
-            var levelCache = items.Select((tt, index) => new { tt.StyleID, tt.Text, index });
-            List<SingleMemo> res = new();
-            SingleMemo r = null;
-            foreach (var item in levelCache)
+                //Heading2: Heading2
+                var prefix = "heading";
+                var levelCache = items.Select((tt, index) => new { tt.StyleID, tt.Text, index });
+                SingleMemo r = null;
+                foreach (var item in levelCache)
+                {
+                    int level = -1;
+                    if ((int.TryParse(item.StyleID, out level))
+                        || (item.StyleID != null && item.StyleID.ToLower().StartsWith(prefix) && int.TryParse(item.StyleID.Substring(prefix.Length, item.StyleID.Length - prefix.Length), out level)))
+                    {
+                        if (r != null) r.Text.Trim();
+
+                        r = new SingleMemo();
+                        r.Title = item.Text;
+                        r.Text = "";
+                        r.Level = level;
+                        res.Add(r);
+
+
+                    }
+                    else
+                    {
+                        if (r != null)
+                            r.Text += item.Text + "\n";
+                    }
+                }
+            }
+            catch (Exception)
             {
-                int level = -1;
-                if ((int.TryParse(item.StyleID, out level))
-                    || (item.StyleID != null && item.StyleID.ToLower().StartsWith(prefix) && int.TryParse(item.StyleID.Substring(prefix.Length, item.StyleID.Length - prefix.Length), out level)))
-                {
-                    if (r != null) r.Text.Trim();
-
-                    r = new SingleMemo();
-                    r.Title = item.Text;
-                    r.Text = "";
-                    r.Level = level;
-                    res.Add(r);
-
-
-                }
-                else
-                {
-                    if (r != null)
-                        r.Text += item.Text + "\n";
-                }
+                //todo: use log here.
+                throw;
             }
             return res;
         }
