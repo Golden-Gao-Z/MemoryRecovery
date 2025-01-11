@@ -1,5 +1,7 @@
-﻿using MR.Service;
+﻿using MR.Model;
+using MR.Service;
 using NPOI.Util;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -19,7 +21,7 @@ namespace MR.WpfClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MemoManager manager;
+        private SuperMemoManager manager;
         public MainWindow()
         {
             InitializeComponent();
@@ -31,58 +33,67 @@ namespace MR.WpfClient
         }
         private void RandMemo()
         {
-            try
-            {
-                var split = this.levelRange.Text.Split([',','，']).Select(tt => int.Parse(tt.Trim())).ToArray();
-                if (split.Length != 2) throw new Exception();
-                var r = manager.Random(split[0], split[1]);
-                this.ShowTitle.Text = r?.Title;
-                this.ShowMemo.Text = r?.Text;
-            }
-            catch (Exception)
-            {
-                var r = manager.Random();
-                this.ShowTitle.Text = r?.Title;
-                this.ShowMemo.Text = r?.Text;
-            }
-           
+            var split = this.levelRange.Text.Split([',', '，'])
+                                            .Select(tt => tt.Trim())
+                                            .Where(tt => int.TryParse(tt, out int _))
+                                            .Select(tt => int.Parse(tt))
+                                            .ToArray();
+            SingleMemo sm;
+            if (split.Length == 2)
+                sm = manager.Random(split[0], split[1]);
+            else
+                sm = manager.Random();
+
+            this.ShowTitle.Text = sm?.Title;
+            this.ShowMemo.Text = sm?.Text;
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            //判断用户的按键是否为Alt+F4
-            //if (e.KeyStates == Keyboard.GetKeyStates(Key.Space))
-            //{
-            //    RandMemo();
-            //}
+            if (e.Key is not Key.Space) return;
+
+            RandMemo();
         }
 
-        private readonly string[] onedrivePath = [
-                "D:\\OneDrive\\Documents\\CompanyWork\\系统机制细节解读.docx" ,
-                //"D:\\OneDrive\\Documents\\CompanyWork\\csTerms.docx"
-            ];
         private string cachePath = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources");
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ClearCache();
-            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
-            //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
-            File.Copy(TempConfig.GetInstance().FilesSources.Last(), cc);
-            this.Load(cc);
+            this.ReloadAllFiles();
         }
-        private void Load(string path)
+        private void ReloadAllFiles()
         {
-            var wordReader = new WordMemoReader(path);
-            this.manager = new MemoManager(wordReader);
-            this.ShowContent.Text = string.Join("\n", this.manager.GetOverView());
+            ClearCache();
+            var files = new List<string>();
+            foreach (var item in TempConfig.GetInstance().FilesSources)
+            {
+                if (!File.Exists(item))
+                {
+                    Debug.WriteLine($"No such file: {item}");
+                    continue;
+                }
+                var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
+                File.Copy(item, cc);
+                files.Add(cc);
+            }
+
+            this.Load(files.ToArray());
+        }
+        private void Load(params string[] paths)
+        {
+            this.manager = new SuperMemoManager();
+            foreach (var path in paths)
+            {
+                var wordReader = new WordMemoReader(path);
+                var manager = new MemoManager(wordReader);
+                this.manager.LoadManager(manager);
+            }
+
+
+            this.ShowContent.Text = string.Join(Environment.NewLine, this.manager.GetOverView());
         }
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            ClearCache();
-            var cc = System.IO.Path.Combine(cachePath, Guid.NewGuid().ToString() + ".docx");
-            //var path = System.IO.Path.Combine(AppContext.BaseDirectory, "MemoResources", "midwaySystemDetails.docx");
-            File.Copy(TempConfig.GetInstance().FilesSources.Last(), cc);
-            this.Load(cc);
+            this.ReloadAllFiles();
         }
         private void ClearCache()
         {

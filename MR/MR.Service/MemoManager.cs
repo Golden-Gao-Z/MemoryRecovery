@@ -1,5 +1,6 @@
 ﻿using MR.Model;
 using NPOI.HPSF;
+using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace MR.Service
     public class MemoManager
     {
         public BaseMemoReader MemoReader { get; private set; }
+        public MemoManager() { }
         public MemoManager(BaseMemoReader memoReader, MemoScheduler scheduler = null)
         {
             this.MemoReader = memoReader;
@@ -46,7 +48,7 @@ namespace MR.Service
         }
         private int levelLimit = 5;
         private int spaceControl = 3;
-        public virtual List<string> GetOverView()
+        public virtual IEnumerable<string> GetOverView()
         {
 
             var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < levelLimit).ToList();
@@ -54,7 +56,7 @@ namespace MR.Service
             {
                 var pattern = "{0," + (tt.Level - 1) * spaceControl + "}{1}";
                 var ff = string.Format(pattern, "", tt.Title.Trim());
-                Debug.WriteLine(ff);
+                //Debug.WriteLine(ff);
                 return ff;
             }
 
@@ -69,5 +71,28 @@ namespace MR.Service
     public class MemoScheduler
     {
 
+    }
+
+
+    public class SuperMemoManager : MemoManager
+    {
+        private List<MemoManager> managers = new List<MemoManager>();
+        public SuperMemoManager() { }
+        public void LoadManager(MemoManager manager) { this.managers.Add(manager); }
+        public void Clear() { this.managers.Clear(); }
+
+        public override IEnumerable<string> GetOverView()
+        {
+            var res = this.managers.Select(tt => tt.GetOverView()).SelectMany(tt => tt);
+            return res;
+        }
+        public override SingleMemo Random(int levelLow = 0, int levelHigh = 6)
+        {
+            long tick = DateTime.Now.Ticks;
+            Random rand = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32));
+            var r=rand.Next(0,this.managers.Count);
+            var res = this.managers[r].Random(levelLow, levelHigh);
+            return res;
+        }
     }
 }
