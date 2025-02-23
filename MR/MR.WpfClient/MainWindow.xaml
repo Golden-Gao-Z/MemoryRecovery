@@ -17,8 +17,8 @@
         </Grid.ColumnDefinitions>
         <DockPanel Grid.ColumnSpan="2">
             <DockPanel DockPanel.Dock="Top" >
-                <TextBox x:Name="levelRange" Width="200" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="7"/>
-                <TextBlock x:Name="ShowTitle" TextWrapping="WrapWithOverflow" Padding="10" />
+                <TextBox FontFamily="Courier New"  x:Name="levelRange" Width="200" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="7"/>
+                <TextBlock FontFamily="Courier New" x:Name="ShowTitle" TextWrapping="WrapWithOverflow" Padding="10" />
             </DockPanel>
             <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button  Padding="20,10" Margin="10" Click="Button_Click"  Content="Random"/>
@@ -27,8 +27,8 @@
             <ScrollViewer DockPanel.Dock="Right" Width="500" Padding="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <TextBlock  x:Name="ShowContent" TextWrapping="WrapWithOverflow"/>
             </ScrollViewer>
-           
-            <TextBlock x:Name="ShowMemo" LineHeight="28"  TextWrapping="WrapWithOverflow" Padding="10,20" />
+
+            <TextBlock x:Name="ShowMemo" FontFamily="Courier New" LineHeight="28"  TextWrapping="WrapWithOverflow" Padding="10,20" />
         </DockPanel>
     </Grid>
 </Window>
