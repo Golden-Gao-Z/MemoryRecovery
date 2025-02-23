@@ -28,9 +28,10 @@ namespace MR.Service
         {
             return default;
         }
-        public virtual List<SingleMemo> ReadAllSingleMemos()
+        public virtual List<SingleMemo> ReadAllSingleMemos(out List<Type> elementTypes)
         {
-            return default;
+            elementTypes = [];
+            return [];
         }
     }
     public class WordMemoReader : BaseMemoReader
@@ -68,11 +69,11 @@ namespace MR.Service
             using StreamReader streamReader = new(this.MemoSrc);
             var document = new XWPFDocument(streamReader.BaseStream);
             var items = document.BodyElements.Cast<XWPFParagraph>();
-//#if DEBUG
-//            var styles = items.Select(tt => tt?.Style + ": " + tt?.StyleID).Distinct();
-//            var sss = string.Join("\n", styles);
-//            Debug.WriteLine(sss);
-//#endif
+            //#if DEBUG
+            //            var styles = items.Select(tt => tt?.Style + ": " + tt?.StyleID).Distinct();
+            //            var sss = string.Join("\n", styles);
+            //            Debug.WriteLine(sss);
+            //#endif
             // 1st: load a level tree 
             // 2nd: asign not to mrd
             ///  1st: create nodes
@@ -80,55 +81,47 @@ namespace MR.Service
 
             var levelCache = items.Select((tt, index) => new { tt.StyleID, tt.Text, index });
 
-//            foreach (var item in items)
-//            {
-//#if DEBUG
-//                Debug.WriteLine(item.Style + "  " + item.Text);
-//#endif
+            //            foreach (var item in items)
+            //            {
+            //#if DEBUG
+            //                Debug.WriteLine(item.Style + "  " + item.Text);
+            //#endif
 
-//            }
+            //            }
             this.mrdocumentCache = mrd;
             return mrd;
         }
 
-        public override List<SingleMemo> ReadAllSingleMemos()
+        public override List<SingleMemo> ReadAllSingleMemos(out List<Type> elementTypes)
         {
             List<SingleMemo> res = new();
+            elementTypes = new List<Type>();
             try
             {
                 using StreamReader streamReader = new(this.MemoSrc);
                 var document = new XWPFDocument(streamReader.BaseStream);
-                var items = document.BodyElements.Where(tt=>tt is XWPFParagraph).Cast<XWPFParagraph>();
-//#if DEBUG
-//                var styles = items.Select(tt => tt?.Style + ": " + tt?.StyleID).Distinct();
-//                var sss = string.Join("\n", styles);
-//                Debug.WriteLine(sss);
-//#endif
+                var items = document.BodyElements.Where(tt => tt is XWPFParagraph).Cast<XWPFParagraph>();
+                elementTypes = document.BodyElements.Select(tt => tt.GetType()).Distinct().ToList();
 
-                //Heading2: Heading2
                 var prefix = "heading";
                 var levelCache = items.Select((tt, index) => new { tt.StyleID, tt.Text, index });
-                SingleMemo r = null;
+                SingleMemo? rand = null;
                 foreach (var item in levelCache)
                 {
                     int level = -1;
                     if ((int.TryParse(item.StyleID, out level))
                         || (item.StyleID != null && item.StyleID.ToLower().StartsWith(prefix) && int.TryParse(item.StyleID.Substring(prefix.Length, item.StyleID.Length - prefix.Length), out level)))
                     {
-                        if (r != null) r.Text.Trim();
-
-                        r = new SingleMemo();
-                        r.Title = item.Text;
-                        r.Text = "";
-                        r.Level = level;
-                        res.Add(r);
-
-
+                        rand = new SingleMemo();
+                        rand.Title = item.Text;
+                        rand.Text = "";
+                        rand.Level = level;
+                        res.Add(rand);
                     }
                     else
                     {
-                        if (r != null)
-                            r.Text += item.Text + "\n";
+                        if (rand != null)
+                            rand.Text += item.Text + "\n";
                     }
                 }
             }

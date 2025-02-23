@@ -1,4 +1,5 @@
 ﻿using MR.Model;
+using MR.Service.ExtensionUtilities;
 using NPOI.HPSF;
 using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
@@ -14,34 +15,42 @@ namespace MR.Service
 
     public class MemoManager
     {
-        public BaseMemoReader MemoReader { get; private set; }
-        public MemoManager() { }
-        public MemoManager(BaseMemoReader memoReader, MemoScheduler scheduler = null)
+        private readonly int randLimit = 100;
+
+        private List<SingleMemo> Memos { get; set; } = [];
+        public int MemosCount => this.Memos.Count;
+        public SingleMemo GetOne(int index)
+        {
+            return this.Memos[index];
+        }
+        public BaseMemoReader MemoReader { get; }
+        public MemoScheduler? Scheduler { get; }
+
+        public MemoManager(BaseMemoReader memoReader, MemoScheduler? scheduler = null)
         {
             this.MemoReader = memoReader;
-            this.memos = this.MemoReader.ReadAllSingleMemos();
+            this.Scheduler = scheduler;
+            var _ = new List<Type>();
+            this.Memos = this.MemoReader.ReadAllSingleMemos(out _);
         }
-        private List<SingleMemo> memos { get; set; } = new List<SingleMemo>();
-        int rLimit = 100;
         private int preRand = -1;
-        public virtual SingleMemo Random(int levelLow = 0, int levelHigh = 6)
+        public virtual SingleMemo? Random(int levelLow = 0, int levelHigh = 6)
         {
-            var count = this.memos.Count;
+            var count = this.Memos.Count;
             if (count == 0) return null;
 
-            long tick = DateTime.Now.Ticks;
-            Random rand = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32));
+            var rand = RandomExtension.GetRandom();
 
             var num = rand.Next(0, count);
-            var mm = this.memos[num];
+            var mm = this.Memos[num];
             var rcount = 0;
             // 抽到空内容，或者与上次重复的，重抽
             while (
                 (string.IsNullOrEmpty(mm.Title) || preRand == num || mm.Level > levelHigh || mm.Level < levelLow)
-                && rcount++ < this.rLimit)
+                && rcount++ < randLimit)
             {
                 num = rand.Next(0, count);
-                mm = this.memos[num];
+                mm = this.Memos[num];
             }
             preRand = num;
             return mm;
@@ -51,7 +60,7 @@ namespace MR.Service
         public virtual IEnumerable<string> GetOverView()
         {
 
-            var lis = this.memos.Where(tt => tt.Level > 0 && tt.Level < levelLimit).ToList();
+            var lis = this.Memos.Where(tt => tt.Level > 0 && tt.Level < levelLimit).ToList();
             var res = lis.Select(tt =>
             {
                 var pattern = "{0," + (tt.Level - 1) * spaceControl + "}{1}";
@@ -74,25 +83,51 @@ namespace MR.Service
     }
 
 
-    public class SuperMemoManager : MemoManager
+    public class SuperMemoManager
     {
         private List<MemoManager> managers = new List<MemoManager>();
+        private List<int> counts = new List<int>();
         public SuperMemoManager() { }
-        public void LoadManager(MemoManager manager) { this.managers.Add(manager); }
+        public void LoadFiles(params string[] paths)
+        {
+            foreach (var path in paths)
+            {
+                var wordReader = new WordMemoReader(path);
+                var manager = new MemoManager(wordReader);
+                this.LoadManager(manager);
+            }
+        }
+
+        public void LoadManager(MemoManager manager)
+        {
+            this.managers.Add(manager);
+            this.counts.Add(manager.MemosCount);
+        }
         public void Clear() { this.managers.Clear(); }
 
-        public override IEnumerable<string> GetOverView()
+        public IEnumerable<string> GetOverView()
         {
             var res = this.managers.Select(tt => tt.GetOverView()).SelectMany(tt => tt);
             return res;
         }
-        public override SingleMemo Random(int levelLow = 0, int levelHigh = 6)
+        public SingleMemo Random(int levelLow = 0, int levelHigh = 6)
         {
-            long tick = DateTime.Now.Ticks;
-            Random rand = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32));
-            var r=rand.Next(0,this.managers.Count);
-            var res = this.managers[r].Random(levelLow, levelHigh);
+            Random rand = RandomExtension.GetRandom();
+            var total = this.counts.Sum();
+            var r = rand.Next(0, total);
+            int idx = 0;
+            foreach (var item in this.counts)
+            {
+                if (r < item)
+                {
+                    break;
+                }
+                r -= item;
+                idx++;
+            }
+            var res = this.managers[idx].GetOne(r);//.Random(levelLow, levelHigh);
             return res;
         }
+
     }
 }
